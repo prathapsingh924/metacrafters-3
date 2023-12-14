@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+
+contract Token is ERC20, ERC20Burnable, Ownable {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint256 initialSupply,
+        uint256 maxSupply,
+        address initialOwner
+    ) ERC20(_name, _symbol) Ownable(initialOwner) {
+        _mint(msg.sender, initialSupply);
+        _setMaxSupply(maxSupply);
+    }
+
+    function mintTokens(address recipient, uint256 mintAmount) external onlyOwner {
+        _mint(recipient, mintAmount);
+    }
+
+    function burnTokens(uint256 burnAmount) external {
+        _burn(msg.sender, burnAmount);
+    }
+
+    function _setMaxSupply(uint256 maxSupply) internal onlyOwner {
+        require(maxSupply >= totalSupply(), "New max supply must be greater than or equal to current total supply");
+        _mint(owner(), maxSupply - totalSupply());
+    }
+
+    
+    function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+        _transfer(_msgSender(), recipient, amount);
+        return true;
+    }
+}
